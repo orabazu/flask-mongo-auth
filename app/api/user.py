@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify, g, make_response
+from flask_cors import CORS, cross_origin
 from app.config import URL_PREFIX
 from app.api.validator import field, validate
 from app.model.user import User
@@ -19,7 +20,7 @@ def get():
 @userAPI.route("/health-check", methods=['GET'])
 def health_check():
     """Simple health check service"""
-    return jsonify({"status": "sdas"})
+    return jsonify({"status": "OK"})
 
 
 @userAPI.route("/register", methods=['POST'])
@@ -34,12 +35,13 @@ def register():
     user.registration_ip = request.remote_addr
     user.last_login_ip = request.remote_addr
 
-    token = service_register(user)
+    service_register(user)
 
-    return jsonify({"status": "OK", "token": token})
+    return jsonify({"status": "OK"})
 
 
-@userAPI.route("/login", methods=['POST'])
+@userAPI.route("/login", methods=['POST','OPTIONS'])
+@cross_origin(supports_credentials = True)
 def login():
     """Login user"""
     body = validate({
@@ -52,5 +54,7 @@ def login():
         body["password"],
         request.remote_addr
     )
+    resp = make_response(jsonify({"status": "OK", "token": token}))
+    resp.set_cookie("token", value = token, httponly = True)
 
-    return jsonify({"status": "OK", "token": token})
+    return resp

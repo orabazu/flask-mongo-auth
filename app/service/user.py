@@ -21,9 +21,6 @@ def register(user):
 
     current_app.logger.debug("User with email %s registered" % user.email)
 
-    return encode(user.jwt_payload(), current_app.config["JWT_SECRET"], current_app.config["JWT_TTL"])
-
-
 def login(email, password, last_login_ip):
     active_user = User.objects(email=email).first()
 
